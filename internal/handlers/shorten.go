@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-
 	"url-shortener/internal/short"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +21,7 @@ func (h ShortenHandler) Serve(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(http.StatusBadRequest).SendString("bad_request")
 	}
+
 	code, shortURL, err := h.Svc.Shorten(c.Context(), req.URL, req.CustomAlias, req.TTLHours)
 	if err != nil {
 		switch {

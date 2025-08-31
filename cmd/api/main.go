@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	appcfg "url-shortener/internal/config"
@@ -42,15 +45,14 @@ func main() {
 	}
 	urlRepo := mongorepo.NewURLRepo(urls)
 
-	// Server compose & run
-	srv := server.New(server.Options{
-		Port:    cfg.Port,
-		BaseURL: cfg.BaseURL,
-		Repo:    urlRepo, // domain repository
-	})
-	// blocking; SIGINT/SIGTERM ile graceful shutdown
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	srv := server.New(server.Options{Port: cfg.Port, BaseURL: cfg.BaseURL, Repo: urlRepo})
+
 	if err := srv.Start(ctx); err != nil {
 		log.Fatal("server stopped with error:", err)
 	}
+
 	_ = mcli.Disconnect(context.Background())
 }

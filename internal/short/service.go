@@ -4,20 +4,16 @@ import (
 	"context"
 	"errors"
 	"time"
+	"url-shortener/internal/security"
 	base62 "url-shortener/pkg"
-
-	"url-shortener/internal/security" // varsa
 )
 
 var (
 	ErrInvalidURL = errors.New("invalid_url")
 	ErrConflict   = errors.New("conflict")
+	ErrExpired    = errors.New("expired")
+	ErrNotFound   = errors.New("not_found")
 )
-
-type Repository interface {
-	Insert(URL string) error
-	GetByCode(code string) (*URL, error)
-}
 
 type Cache interface {
 	// ileride eklenecek (Get/Set)
@@ -34,7 +30,7 @@ func NewService(r Repository, c Cache, baseURL string) *Service {
 }
 
 func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *string, ttlHours *int) (string, string, error) {
-	target, err := security.NormalizeURL(inputURL) // yoksa basit kontrol yaz
+	target, err := security.NormalizeUrl(inputURL)
 	if err != nil {
 		return "", "", ErrInvalidURL
 	}
@@ -43,7 +39,7 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 	if customAlias != nil && *customAlias != "" {
 		code = *customAlias
 	} else {
-		code = base62.Encode(target)
+		code = base62.Encode(NextID(ctx))
 	}
 
 	var exp *time.Time
@@ -63,10 +59,15 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 func (s *Service) Resolve(ctx context.Context, code string) (string, error) {
 	u, err := s.repo.GetByCode(code)
 	if err != nil || u == nil {
-		return "", errors.New("not_found")
+		return "", ErrNotFound
 	}
+
+	if u.Disabled {
+		return "", ErrNotFound
+	}
+
 	if u.ExpiresAt != nil && u.ExpiresAt.Before(time.Now().UTC()) {
-		return "", errors.New("expired")
+		return "", ErrExpired
 	}
 	return u.Target, nil
 }

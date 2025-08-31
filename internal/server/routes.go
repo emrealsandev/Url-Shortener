@@ -10,7 +10,7 @@ import (
 func registerRoutes(app *fiber.App, svc *short.Service) {
 	// health
 	app.Get("/healthz", func(c *fiber.Ctx) error { return c.SendString("ok") })
-	app.Get("/readyz", func(c *fiber.Ctx) error { return c.SendString("ready") }) // (istersen ping ekleriz)
+	app.Get("/readyz", func(c *fiber.Ctx) error { return c.SendString("ready") })
 
 	// api
 	api := app.Group("/v1")
