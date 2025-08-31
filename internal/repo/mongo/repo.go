@@ -15,7 +15,9 @@ type URLRepo struct {
 	coll *mongo.Collection
 }
 
-func NewURLRepo(coll *mongo.Collection) *URLRepo { return &URLRepo{coll: coll} }
+func NewURLRepo(coll *mongo.Collection) *URLRepo {
+	return &URLRepo{coll: coll}
+}
 
 func (r *URLRepo) Insert(u short.URL) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

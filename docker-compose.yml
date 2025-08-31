@@ -4,14 +4,15 @@ services:
     ports: ["27017:27017"]
     volumes: [ "mongo_data:/data/db" ]
 
-  mongo-express:
-    image: mongo-express:1.0.2
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin
-    ports: ["8081:8081"]
-    depends_on: [mongo]
+# mongodb compass kullandığım için bunu comment-out ettim uygulama yüklemek istemeyenler bunu açabilir
+#  mongo-express:
+#    image: mongo-express:1.0.2
+#    environment:
+#      ME_CONFIG_MONGODB_SERVER: mongo
+#      ME_CONFIG_BASICAUTH_USERNAME: admin
+#      ME_CONFIG_BASICAUTH_PASSWORD: admin
+#    ports: ["8090:8081"] 8081 kullanıldığı için 8090 dan bind ettim
+#    depends_on: [mongo]
 
 volumes:
   mongo_data:
