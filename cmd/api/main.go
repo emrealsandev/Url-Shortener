@@ -40,9 +40,6 @@ func main() {
 
 	db := mcli.Database(cfg.MongoDB)
 	urls := db.Collection("urls")
-	if err := mongorepo.EnsureIndexes(ctx, urls); err != nil {
-		log.Fatal("indexes:", err)
-	}
 	urlRepo := mongorepo.NewURLRepo(urls)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

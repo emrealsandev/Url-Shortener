@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 
 	"url-shortener/internal/short"
@@ -38,4 +39,27 @@ func (r *URLRepo) GetByCode(code string) (*short.URL, error) {
 		return nil, nil
 	}
 	return &out, err
+}
+
+func (r *URLRepo) FindOneAndUpdate(ctx context.Context) (uint64, error) {
+	// upsert + returnDocument:After ⇒ atomik artır, yeni değeri döndür
+	opts := options.FindOneAndUpdate().
+		SetUpsert(true).
+		SetReturnDocument(options.After).
+		SetHint(bson.D{{Key: "_id", Value: 1}}) // opsiyonel
+
+	var out struct {
+		Seq int64 `bson:"seq"`
+	}
+
+	err := r.coll.FindOneAndUpdate(
+		ctx,
+		bson.M{"_id": "url"},
+		bson.M{"$inc": bson.M{"seq": 1}},
+		opts,
+	).Decode(&out)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(out.Seq), nil
 }

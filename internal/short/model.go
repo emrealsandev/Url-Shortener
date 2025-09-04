@@ -1,6 +1,9 @@
 package short
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type URL struct {
 	Code        string     `bson:"code" json:"code"`
@@ -15,4 +18,5 @@ type URL struct {
 type Repository interface {
 	Insert(URL) error
 	GetByCode(code string) (*URL, error)
+	FindOneAndUpdate(ctx context.Context) (uint64, error)
 }

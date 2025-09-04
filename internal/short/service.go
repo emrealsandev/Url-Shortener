@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 	"url-shortener/internal/security"
-	base62 "url-shortener/pkg"
+	"url-shortener/pkg/base62"
 )
 
 var (
@@ -13,6 +13,7 @@ var (
 	ErrConflict   = errors.New("conflict")
 	ErrExpired    = errors.New("expired")
 	ErrNotFound   = errors.New("not_found")
+	ErrSequence   = errors.New("sequence_error")
 )
 
 type Cache interface {
@@ -39,7 +40,11 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 	if customAlias != nil && *customAlias != "" {
 		code = *customAlias
 	} else {
-		code = base62.Encode(NextID(ctx))
+		seq, err := s.GetSeqNum(ctx)
+		if err != nil {
+			return "", "", ErrSequence
+		}
+		code = base62.Encode(seq)
 	}
 
 	var exp *time.Time
@@ -48,7 +53,7 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		exp = &e
 	}
 
-	u := URL{Code: code, Target: target, CreatedAt: time.Now().UTC(), ExpiresAt: exp}
+	u := URL{Code: code, Target: target, CreatedAt: time.Now().UTC(), ExpiresAt: exp, Disabled: false}
 	if err := s.repo.Insert(u); err != nil {
 		// repo duplicate → ErrConflict
 		return "", "", ErrConflict
@@ -70,4 +75,12 @@ func (s *Service) Resolve(ctx context.Context, code string) (string, error) {
 		return "", ErrExpired
 	}
 	return u.Target, nil
+}
+
+func (s *Service) GetSeqNum(ctx context.Context) (uint64, error) {
+	seq, err := s.repo.FindOneAndUpdate(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return seq, nil
 }
