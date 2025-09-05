@@ -3,7 +3,10 @@ package short
 import (
 	"context"
 	"errors"
+	"strconv"
+	"strings"
 	"time"
+	"url-shortener/internal/config"
 	"url-shortener/internal/security"
 	"url-shortener/pkg/base62"
 )
@@ -44,7 +47,13 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		if err != nil {
 			return "", "", ErrSequence
 		}
-		code = base62.Encode(seq)
+
+		salt, err := strconv.ParseUint(strings.ReplaceAll(config.Get().SequenceSalt, "_", ""), 0, 64)
+		if err != nil {
+			return "", "", ErrSequence
+		}
+
+		code = base62.Encode(seq ^ salt)
 	}
 
 	var exp *time.Time

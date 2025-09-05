@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	UrlsColl    = "urls"
-	IdxCodeV1   = "uniq_code_v1"
-	IdxAliasV1  = "uniq_custom_alias_v1"
-	IdxExpireV1 = "ttl_expire_v1"
+	UrlsColl     = "urls"
+	SequenceColl = "sequence"
+	IdxCodeV1    = "uniq_code_v1"
+	IdxAliasV1   = "uniq_custom_alias_v1"
+	IdxExpireV1  = "ttl_expire_v1"
 )
 
 type Migrator struct {
@@ -26,16 +27,27 @@ func New(db *mongo.Database) *Migrator {
 
 func (m *Migrator) RunAll(ctx context.Context) error {
 	if err := m.ensureCollection(ctx, UrlsColl); err != nil {
-		return fmt.Errorf("ensure collection: %w", err)
+		return fmt.Errorf("ensure collection urls: %w", err)
 	}
-	coll := m.DB.Collection(UrlsColl)
+	urlCollection := m.DB.Collection(UrlsColl)
 
-	if err := m.ensureValidator(ctx, coll); err != nil {
+	if err := m.ensureValidator(ctx, urlCollection); err != nil {
 		return fmt.Errorf("ensure validator: %w", err)
 	}
-	if err := m.ensureIndexes(ctx, coll); err != nil {
+	if err := m.ensureIndexes(ctx, urlCollection); err != nil {
 		return fmt.Errorf("ensure indexes: %w", err)
 	}
+
+	if err := m.ensureCollection(ctx, SequenceColl); err != nil {
+		return fmt.Errorf("ensure collection sequence: %w", err)
+	}
+
+	sequenceCollection := m.DB.Collection(SequenceColl)
+
+	if err := m.ensureValidator(ctx, sequenceCollection); err != nil {
+		return fmt.Errorf("ensure validator: %w", err)
+	}
+
 	return nil
 }
 
@@ -51,26 +63,44 @@ func (m *Migrator) ensureCollection(ctx context.Context, name string) error {
 }
 
 func (m *Migrator) ensureValidator(ctx context.Context, coll *mongo.Collection) error {
-	schema := bson.M{
-		"bsonType":             "object",
-		"required":             bson.A{"code", "target", "created_at", "disabled"},
-		"additionalProperties": false,
-		"properties": bson.M{
-			"_id":          bson.M{"bsonType": "objectId"},
-			"code":         bson.M{"bsonType": "string"},
-			"target":       bson.M{"bsonType": "string"},
-			"created_at":   bson.M{"bsonType": "date"},
-			"disabled":     bson.M{"bsonType": "bool"},
-			"expires_at":   bson.M{"bsonType": bson.A{"date", "null"}},
-			"custom_alias": bson.M{"bsonType": "string"},
-		},
+	schema := bson.M{}
+	if coll.Name() == UrlsColl {
+		schema = bson.M{
+			"bsonType":             "object",
+			"required":             bson.A{"code", "target", "created_at", "disabled"},
+			"additionalProperties": false,
+			"properties": bson.M{
+				"_id":          bson.M{"bsonType": "objectId"},
+				"code":         bson.M{"bsonType": "string"},
+				"target":       bson.M{"bsonType": "string"},
+				"created_at":   bson.M{"bsonType": "date"},
+				"disabled":     bson.M{"bsonType": "bool"},
+				"expires_at":   bson.M{"bsonType": bson.A{"date", "null"}},
+				"custom_alias": bson.M{"bsonType": "string"},
+			},
+		}
+
+	} else if coll.Name() == SequenceColl {
+		schema = bson.M{
+			"bsonType":             "object",
+			"required":             bson.A{"seq"},
+			"additionalProperties": false,
+			"properties": bson.M{
+				"_id": bson.M{"bsonType": "string"},
+				"seq": bson.M{"bsonType": bson.A{"long", "int"}},
+			},
+		}
+	} else {
+		return fmt.Errorf("collection %s not found", coll.Name())
 	}
+
 	cmd := bson.D{
 		{Key: "collMod", Value: coll.Name()},
 		{Key: "validator", Value: bson.M{"$jsonSchema": schema}},
 		{Key: "validationLevel", Value: "strict"},
 		{Key: "validationAction", Value: "error"},
 	}
+
 	return coll.Database().RunCommand(ctx, cmd).Err()
 }
 

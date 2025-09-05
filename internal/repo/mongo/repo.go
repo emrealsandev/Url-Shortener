@@ -3,27 +3,29 @@ package mongo
 import (
 	"context"
 	"errors"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
-
-	"url-shortener/internal/short"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
+	"url-shortener/internal/short"
 )
 
 type URLRepo struct {
-	coll *mongo.Collection
+	urlCollection *mongo.Collection
+	seqCollection *mongo.Collection
 }
 
-func NewURLRepo(coll *mongo.Collection) *URLRepo {
-	return &URLRepo{coll: coll}
+func NewURLRepo(db *mongo.Database) *URLRepo {
+	return &URLRepo{
+		urlCollection: db.Collection("urls"),
+		seqCollection: db.Collection("sequence"),
+	}
 }
 
 func (r *URLRepo) Insert(u short.URL) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	_, err := r.coll.InsertOne(ctx, u)
+	_, err := r.urlCollection.InsertOne(ctx, u)
 	if mongo.IsDuplicateKeyError(err) {
 		return errors.New("duplicate") // service ErrConflict'a çeviriyor
 	}
@@ -34,7 +36,7 @@ func (r *URLRepo) GetByCode(code string) (*short.URL, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	var out short.URL
-	err := r.coll.FindOne(ctx, bson.M{"code": code}).Decode(&out)
+	err := r.urlCollection.FindOne(ctx, bson.M{"code": code}).Decode(&out)
 	if err == mongo.ErrNoDocuments {
 		return nil, nil
 	}
@@ -52,7 +54,7 @@ func (r *URLRepo) FindOneAndUpdate(ctx context.Context) (uint64, error) {
 		Seq int64 `bson:"seq"`
 	}
 
-	err := r.coll.FindOneAndUpdate(
+	err := r.seqCollection.FindOneAndUpdate(
 		ctx,
 		bson.M{"_id": "url"},
 		bson.M{"$inc": bson.M{"seq": 1}},

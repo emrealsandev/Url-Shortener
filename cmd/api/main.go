@@ -2,29 +2,29 @@ package main
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+	"url-shortener/internal/logger"
 
 	appcfg "url-shortener/internal/config"
 	mongorepo "url-shortener/internal/repo/mongo"
 	"url-shortener/internal/server"
 
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	_ = godotenv.Load()
 
-	var cfg appcfg.Config
-	if err := envconfig.Process("", &cfg); err != nil {
-		log.Fatal(err)
-	}
+	// config init
+	var cfg = appcfg.Get()
+
+	// logger init
+	defer logger.L().Sync()
 
 	// Infra compose (DB’ler)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -39,16 +39,16 @@ func main() {
 	}
 
 	db := mcli.Database(cfg.MongoDB)
-	urls := db.Collection("urls")
-	urlRepo := mongorepo.NewURLRepo(urls)
+	urlRepo := mongorepo.NewURLRepo(db)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	logger.L().Info("starting server")
 	srv := server.New(server.Options{Port: cfg.Port, BaseURL: cfg.BaseURL, Repo: urlRepo})
 
 	if err := srv.Start(ctx); err != nil {
-		log.Fatal("server stopped with error:", err)
+		logger.L().Error("server stopped with error:", zap.Error(err))
 	}
 
 	_ = mcli.Disconnect(context.Background())
