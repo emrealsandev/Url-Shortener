@@ -39,6 +39,8 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		return "", "", ErrInvalidURL
 	}
 
+	// buraya redis gelecek
+
 	var code string
 	if customAlias != nil && *customAlias != "" {
 		code = *customAlias
@@ -67,10 +69,13 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		// repo duplicate → ErrConflict
 		return "", "", ErrConflict
 	}
+	// buraya redis set gelecek
+
 	return code, s.baseURL + "/" + code, nil
 }
 
 func (s *Service) Resolve(ctx context.Context, code string) (string, error) {
+	// buraya redis gelecek
 	u, err := s.repo.GetByCode(code)
 	if err != nil || u == nil {
 		return "", ErrNotFound

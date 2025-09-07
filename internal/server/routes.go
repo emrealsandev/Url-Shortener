@@ -1,7 +1,7 @@
 package server
 
 import (
-	"url-shortener/internal/handlers"
+	handlers2 "url-shortener/internal/server/handlers"
 	"url-shortener/internal/short"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,8 +14,8 @@ func registerRoutes(app *fiber.App, svc *short.Service) {
 
 	// api
 	api := app.Group("/v1")
-	api.Post("/shorten", handlers.ShortenHandler{Svc: svc}.Serve)
+	api.Post("/shorten", handlers2.ShortenHandler{Svc: svc}.Serve)
 
 	// redirect
-	app.Get("/:code", handlers.RedirectHandler{Svc: svc}.Serve)
+	app.Get("/:code", handlers2.RedirectHandler{Svc: svc}.Serve)
 }

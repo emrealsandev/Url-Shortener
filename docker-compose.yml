@@ -1,8 +1,32 @@
 services:
+  # GO APP (Air ile hot-reload)
+  app:
+    build:
+      context: .
+    container_name: url-shortener-app
+    env_file: .env
+    command: [ "air", "-c", "/app/.air.toml" ]
+    volumes:
+      - ./:/app           # kodu bind-mount
+      - gocache:/go/pkg/mod
+    ports:
+      - "8080:8080"       # Fiber
+    depends_on:
+      - mongo
+      - redis
+
   mongo:
     image: mongo:7
     ports: ["27017:27017"]
     volumes: [ "mongo_data:/data/db" ]
+
+  redis:
+      image: redis:7-alpine
+      container_name: url-shortener-redis
+      command: [ "redis-server", "--appendonly", "yes" ]
+      ports: [ "6379:6379" ]
+      volumes:
+        - redis_data:/data
 
 # mongodb compass kullandığım için bunu comment-out ettim uygulama yüklemek istemeyenler bunu açabilir
 #  mongo-express:
@@ -15,4 +39,6 @@ services:
 #    depends_on: [mongo]
 
 volumes:
+  gocache:
   mongo_data:
+  redis_data:
