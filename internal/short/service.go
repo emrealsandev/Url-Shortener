@@ -34,6 +34,7 @@ func NewService(r Repository, c cache.Cache, baseURL string, logger logger.Logge
 }
 
 func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *string, ttlHours *int) (string, string, error) {
+
 	target, err := security.NormalizeUrl(inputURL)
 	if err != nil {
 		return "", "", ErrInvalidURL
@@ -47,10 +48,17 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 
 	// rediste varsa onu dön
 	if value != "" {
+		s.logger.Info("cache hit")
 		return value, s.baseURL + "/" + value, nil
 	}
 
-	var code string
+	code, _ := s.checkEligibleCodeExists(target)
+
+	if code != "" {
+		s.logger.Info("code exist")
+		return code, s.baseURL + "/" + code, nil
+	}
+
 	if customAlias != nil && *customAlias != "" {
 		code = *customAlias
 	} else {
@@ -79,12 +87,24 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		return "", "", ErrConflict
 	}
 
-	_ := s.cache.SetURLByCode(ctx, code, target, time.Duration(24)*time.Hour)
+	s.processCacheAfterShorten(ctx, code, target)
 
 	return code, s.baseURL + "/" + code, nil
 }
 
 func (s *Service) Resolve(ctx context.Context, code string) (string, error) {
+
+	value, hasError, errorMsg := s.cache.GetURLByCode(ctx, code)
+	if hasError {
+		s.logger.Error(errorMsg.Error())
+		return "", ErrSystem
+	}
+
+	// rediste varsa onu dön
+	if value != "" {
+		return value, nil
+	}
+
 	// buraya redis gelecek
 	u, err := s.repo.GetByCode(code)
 	if err != nil || u == nil {
@@ -107,4 +127,13 @@ func (s *Service) GetSeqNum(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 	return seq, nil
+}
+
+func (s *Service) processCacheAfterShorten(ctx context.Context, code string, target string) {
+	_ = s.cache.SetURLByCode(ctx, code, target, time.Duration(24)*time.Hour)
+	_ = s.cache.SetCodeByURLKey(ctx, target, code, time.Duration(24)*time.Hour)
+}
+
+func (s *Service) checkEligibleCodeExists(target string) (string, error) {
+	return s.repo.GetCodeByUrl(target)
 }

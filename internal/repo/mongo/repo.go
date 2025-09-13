@@ -3,11 +3,12 @@ package mongo
 import (
 	"context"
 	"errors"
+	"time"
+	"url-shortener/internal/short"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
-	"url-shortener/internal/short"
 )
 
 type URLRepo struct {
@@ -64,4 +65,24 @@ func (r *URLRepo) FindOneAndUpdate(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 	return uint64(out.Seq), nil
+}
+
+func (r *URLRepo) GetCodeByUrl(url string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	var out short.URL
+	err := r.urlCollection.FindOne(ctx, bson.M{"target": url}).Decode(&out)
+	if err == mongo.ErrNoDocuments {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	if out.Code == "" {
+		return "", nil
+	}
+
+	return out.Code, nil
 }

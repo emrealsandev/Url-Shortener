@@ -18,7 +18,7 @@ func (c *Redis) GetURLByCode(ctx context.Context, code string) (string, bool, er
 	if err == redis.Nil {
 		return "", false, nil
 	}
-	return v, err == nil, err
+	return v, err != nil, err
 }
 func (c *Redis) SetURLByCode(ctx context.Context, code, target string, ttl time.Duration) error {
 	return c.Rdb.Set(ctx, "c:"+code, target, ttl).Err()

@@ -55,3 +55,7 @@ func (l *loggerImpl) Warn(msg string, fields ...any) {
 func (l *loggerImpl) Error(msg string, fields ...any) {
 	l.zapLogger.Sugar().Errorw(msg, fields...)
 }
+
+func (l *loggerImpl) Sync() {
+	l.zapLogger.Sync()
+}

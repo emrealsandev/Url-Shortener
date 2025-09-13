@@ -42,7 +42,7 @@ func New(opt Options) *Server {
 	app.Use(compress.New())
 
 	// Domain service (şimdilik cache yok)
-	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL)
+	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL, opt.Logger)
 
 	// Routes
 	registerRoutes(app, svc)

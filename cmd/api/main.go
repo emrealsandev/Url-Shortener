@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
@@ -15,6 +12,10 @@ import (
 	"url-shortener/internal/logger"
 	mongorepo "url-shortener/internal/repo/mongo"
 	"url-shortener/internal/server"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -24,11 +25,7 @@ func main() {
 
 	// Logger'ı başlat
 	loggerInstance := logger.GetLogger()
-	defer func() {
-		if l, ok := logger.GetLogger().(*logger.loggerImpl); ok {
-			_ = l.zapLogger.Sync() // Logları temizler
-		}
-	}()
+	defer loggerInstance.Sync()
 
 	// Infra compose (DB’ler)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

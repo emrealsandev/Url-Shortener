@@ -19,4 +19,5 @@ type Repository interface {
 	Insert(URL) error
 	GetByCode(code string) (*URL, error)
 	FindOneAndUpdate(ctx context.Context) (uint64, error)
+	GetCodeByUrl(urlKey string) (string, error)
 }

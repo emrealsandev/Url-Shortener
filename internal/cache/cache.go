@@ -12,5 +12,5 @@ type Cache interface {
 
 	GetCodeByURLKey(ctx context.Context, urlKey string) (string, bool, error)
 	SetCodeByURLKey(ctx context.Context, urlKey, code string, ttl time.Duration) error
-	IsKeyExists(ctx context.Context, key string) uint64
+	IsKeyExists(ctx context.Context, key string) int64
 }
