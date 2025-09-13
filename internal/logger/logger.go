@@ -1,30 +1,57 @@
 package logger
 
 import (
-	"go.uber.org/zap"
 	"os"
 	"url-shortener/internal/config"
+
+	"go.uber.org/zap"
 )
 
-var log *zap.Logger
+type loggerImpl struct {
+	zapLogger *zap.Logger
+}
 
-func Init() {
+var singleton Logger
+
+func newLogger() {
+	var zapLogger *zap.Logger
 	var err error
+
 	switch os.Getenv("APP_ENVIRONMENT") {
 	case config.ENVIRONMENT_PROD:
-		log, err = zap.NewProduction()
+		zapLogger, err = zap.NewProduction()
 	case config.ENVIRONMENT_LOCAL:
-		log, err = zap.NewDevelopment()
+		zapLogger, err = zap.NewDevelopment()
+	default:
+		zapLogger, err = zap.NewDevelopment()
 	}
 
 	if err != nil {
 		panic(err)
 	}
+
+	singleton = &loggerImpl{zapLogger: zapLogger}
 }
 
-func L() *zap.Logger {
-	if log == nil {
-		Init()
+func GetLogger() Logger {
+	if singleton == nil {
+		newLogger()
 	}
-	return log
+	return singleton
+}
+
+func (l *loggerImpl) Debug(msg string, fields ...any) {
+	l.zapLogger.Sugar().Debugw(msg, fields...)
+}
+
+func (l *loggerImpl) Info(msg string, fields ...any) {
+	l.zapLogger.Sugar().Infow(msg, fields...)
+}
+
+func (l *loggerImpl) Warn(msg string, fields ...any) {
+	l.zapLogger.Sugar().Warnw(msg, fields...)
+}
+
+func (l *loggerImpl) Error(msg string, fields ...any) {
+	l.zapLogger.Sugar().Errorw(msg, fields...)
 }

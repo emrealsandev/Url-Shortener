@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"url-shortener/internal/cache"
 	"url-shortener/internal/config"
+	"url-shortener/internal/logger"
 	"url-shortener/internal/security"
 	"url-shortener/pkg/base62"
 )
@@ -17,20 +19,18 @@ var (
 	ErrExpired    = errors.New("expired")
 	ErrNotFound   = errors.New("not_found")
 	ErrSequence   = errors.New("sequence_error")
+	ErrSystem     = errors.New("system_error")
 )
-
-type Cache interface {
-	// ileride eklenecek (Get/Set)
-}
 
 type Service struct {
 	repo    Repository
-	cache   Cache
+	cache   cache.Cache
 	baseURL string
+	logger  logger.Logger
 }
 
-func NewService(r Repository, c Cache, baseURL string) *Service {
-	return &Service{repo: r, cache: c, baseURL: baseURL}
+func NewService(r Repository, c cache.Cache, baseURL string, logger logger.Logger) *Service {
+	return &Service{repo: r, cache: c, baseURL: baseURL, logger: logger}
 }
 
 func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *string, ttlHours *int) (string, string, error) {
@@ -39,7 +39,16 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		return "", "", ErrInvalidURL
 	}
 
-	// buraya redis gelecek
+	value, hasError, errorMsg := s.cache.GetCodeByURLKey(ctx, target)
+	if hasError {
+		s.logger.Error(errorMsg.Error())
+		return "", "", ErrSystem
+	}
+
+	// rediste varsa onu dön
+	if value != "" {
+		return value, s.baseURL + "/" + value, nil
+	}
 
 	var code string
 	if customAlias != nil && *customAlias != "" {
@@ -69,7 +78,8 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		// repo duplicate → ErrConflict
 		return "", "", ErrConflict
 	}
-	// buraya redis set gelecek
+
+	_ := s.cache.SetURLByCode(ctx, code, target, time.Duration(24)*time.Hour)
 
 	return code, s.baseURL + "/" + code, nil
 }

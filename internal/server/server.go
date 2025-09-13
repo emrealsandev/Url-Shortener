@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"time"
-
+	"url-shortener/internal/cache"
 	"url-shortener/internal/short"
+
+	loggerInterface "url-shortener/internal/logger"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -18,6 +20,8 @@ type Options struct {
 	Port    string
 	BaseURL string
 	Repo    short.Repository
+	Cache   cache.Cache
+	Logger  loggerInterface.Logger
 }
 
 type Server struct {
@@ -38,7 +42,7 @@ func New(opt Options) *Server {
 	app.Use(compress.New())
 
 	// Domain service (şimdilik cache yok)
-	svc := short.NewService(opt.Repo, nil, opt.BaseURL)
+	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL)
 
 	// Routes
 	registerRoutes(app, svc)

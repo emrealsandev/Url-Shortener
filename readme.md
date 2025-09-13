@@ -65,7 +65,7 @@ go run cmd/migration
 To enable hot-reloading for development, use `air` with the provided config:
 
 ```bash
-air -c .air.toml
+docker-compose exec app sh -lc 'ls -l /app/.air.toml || ls -l /app/air.toml'
 ```
 
 Or build and run manually:
