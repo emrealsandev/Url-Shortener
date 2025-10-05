@@ -2,7 +2,10 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"time"
+	"url-shortener/internal/repo"
+	"url-shortener/pkg/utils"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -15,7 +18,7 @@ func NewRedis(addr, pass string, db int) *Redis {
 
 func (c *Redis) GetURLByCode(ctx context.Context, code string) (string, bool, error) {
 	v, err := c.Rdb.Get(ctx, "c:"+code).Result()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return "", false, nil
 	}
 	return v, err != nil, err
@@ -29,7 +32,7 @@ func (c *Redis) DelURLByCode(ctx context.Context, code string) error {
 
 func (c *Redis) GetCodeByURLKey(ctx context.Context, urlKey string) (string, bool, error) {
 	v, err := c.Rdb.Get(ctx, "u:"+urlKey).Result()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return "", false, nil
 	}
 	return v, err != nil, err
@@ -40,4 +43,43 @@ func (c *Redis) SetCodeByURLKey(ctx context.Context, urlKey, code string, ttl ti
 
 func (c *Redis) IsKeyExists(ctx context.Context, key string) int64 {
 	return c.Rdb.Exists(ctx, key).Val()
+}
+
+func (c *Redis) GetHash(hashKey string) *repo.Settings {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	settingsHash := c.Rdb.HGetAll(ctx, hashKey)
+	if settingsHash.Err() != nil || len(settingsHash.Val()) == 0 {
+		return nil
+	}
+
+	settings := repo.Settings{}
+	err := utils.MapToStruct(settingsHash.Val(), &settings)
+	if err != nil {
+		return nil
+	}
+	return &settings
+}
+
+func (c *Redis) SetHash(hashKey string, src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	m, err := utils.StructToMap(src)
+	if err != nil {
+		return err
+	}
+	if len(m) == 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	pipe := c.Rdb.TxPipeline()
+	pipe.HSet(ctx, hashKey, m)
+	pipe.Expire(ctx, hashKey, 5*time.Minute)
+
+	_, err = pipe.Exec(ctx)
+	return err
 }

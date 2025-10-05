@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 	"url-shortener/internal/cache"
+	"url-shortener/internal/repo"
 	"url-shortener/internal/short"
 
 	loggerInterface "url-shortener/internal/logger"
@@ -19,7 +20,7 @@ import (
 type Options struct {
 	Port    string
 	BaseURL string
-	Repo    short.Repository
+	Repo    repo.Repository
 	Cache   cache.Cache
 	Logger  loggerInterface.Logger
 }
@@ -38,11 +39,24 @@ func New(opt Options) *Server {
 
 	// Middlewares
 	app.Use(recover.New())
-	app.Use(logger.New())
+	app.Use(logger.New()) // bu fiberin loggeri bizim logical olan farklı!
 	app.Use(compress.New())
 
-	// Domain service (şimdilik cache yok)
-	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL, opt.Logger)
+	settings := opt.Cache.GetHash(repo.COLLECTION_SETTINGS)
+	if settings == nil {
+
+		var err error
+		settings, err = opt.Repo.GetAllSettings()
+		opt.Logger.Debug("settings: ", settings)
+
+		if err != nil {
+			opt.Logger.Warn("Error while getting settings from database: ", err)
+		}
+
+		_ = opt.Cache.SetHash(repo.COLLECTION_SETTINGS, settings)
+	}
+
+	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL, opt.Logger, settings)
 
 	// Routes
 	registerRoutes(app, svc)

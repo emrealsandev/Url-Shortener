@@ -13,7 +13,6 @@ type ShortenHandler struct{ Svc *short.Service }
 type shortenReq struct {
 	URL         string  `json:"url"`
 	CustomAlias *string `json:"custom_alias,omitempty"`
-	TTLHours    *int    `json:"ttl_hours,omitempty"`
 }
 
 func (h ShortenHandler) Serve(c *fiber.Ctx) error {
@@ -22,7 +21,7 @@ func (h ShortenHandler) Serve(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("bad_request")
 	}
 
-	code, shortURL, err := h.Svc.Shorten(c.Context(), req.URL, req.CustomAlias, req.TTLHours)
+	code, shortURL, err := h.Svc.Shorten(c.Context(), req.URL, req.CustomAlias)
 	if err != nil {
 		switch {
 		case errors.Is(err, short.ErrInvalidURL):

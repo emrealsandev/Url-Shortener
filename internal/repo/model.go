@@ -1,9 +1,12 @@
-package short
+package repo
 
 import (
-	"context"
 	"time"
 )
+
+const COLLECTION_URLS = "urls"
+const COLLECTION_SETTINGS = "settings"
+const COLLECTION_SEQUENCE = "sequence"
 
 type URL struct {
 	Code        string     `bson:"code" json:"code"`
@@ -15,9 +18,7 @@ type URL struct {
 	OwnerID     *int64     `bson:"owner_id,omitempty" json:"owner_id,omitempty"`
 }
 
-type Repository interface {
-	Insert(URL) error
-	GetByCode(code string) (*URL, error)
-	FindOneAndUpdate(ctx context.Context) (uint64, error)
-	GetCodeByUrl(urlKey string) (string, error)
+type Settings struct {
+	TtlTime      int8 `bson:"ttl_time" json:"ttl_time"`
+	RedisTtlTime int8 `bson:"redis_ttl" json:"redis_ttl"`
 }

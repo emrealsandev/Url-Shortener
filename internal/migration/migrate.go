@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"fmt"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,6 +12,7 @@ import (
 const (
 	UrlsColl     = "urls"
 	SequenceColl = "sequence"
+	SettingsColl = "settings"
 	IdxCodeV1    = "uniq_code_v1"
 	IdxAliasV1   = "uniq_custom_alias_v1"
 	IdxExpireV1  = "ttl_expire_v1"
@@ -46,6 +48,10 @@ func (m *Migrator) RunAll(ctx context.Context) error {
 
 	if err := m.ensureValidator(ctx, sequenceCollection); err != nil {
 		return fmt.Errorf("ensure validator: %w", err)
+	}
+
+	if err := m.ensureCollection(ctx, SettingsColl); err != nil {
+		return fmt.Errorf("ensure collection settings: %w", err)
 	}
 
 	return nil
