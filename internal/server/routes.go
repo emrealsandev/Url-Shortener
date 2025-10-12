@@ -2,6 +2,7 @@ package server
 
 import (
 	"url-shortener/internal/config"
+	"url-shortener/internal/server/docs"
 	handlers2 "url-shortener/internal/server/handlers"
 	"url-shortener/internal/server/middleware"
 	"url-shortener/internal/short"
@@ -22,6 +23,10 @@ func registerRoutes(app *fiber.App, svc *short.Service, settingsProvider *config
 	// health
 	api.Get("/healthz", func(c *fiber.Ctx) error { return c.SendString("ok") })
 	api.Get("/readyz", func(c *fiber.Ctx) error { return c.SendString("ready") })
+
+	// swagger docs
+	api.Get("/docs", docs.SwaggerUI)
+	api.Get("/docs/swagger.json", docs.SwaggerJSON)
 
 	api.Post("/shorten", handlers2.ShortenHandler{Svc: svc}.Serve)
 

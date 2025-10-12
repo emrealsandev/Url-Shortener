@@ -189,7 +189,6 @@ Security tips:
 - API authentication (tokens)
 - Batch shortening
 - QR code generation
-- Api documentation with swagger
 - Simple User Interface (UI)
 
 ---
