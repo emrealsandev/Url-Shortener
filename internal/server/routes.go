@@ -10,9 +10,6 @@ import (
 )
 
 func registerRoutes(app *fiber.App, svc *short.Service, settingsProvider *config.Provider) {
-	// health
-	app.Get("/healthz", func(c *fiber.Ctx) error { return c.SendString("ok") })
-	app.Get("/readyz", func(c *fiber.Ctx) error { return c.SendString("ready") })
 
 	// api
 	api := app.Group("/v1")
@@ -22,9 +19,13 @@ func registerRoutes(app *fiber.App, svc *short.Service, settingsProvider *config
 		middleware.APILimiter(),
 	)
 
+	// health
+	api.Get("/healthz", func(c *fiber.Ctx) error { return c.SendString("ok") })
+	api.Get("/readyz", func(c *fiber.Ctx) error { return c.SendString("ready") })
+
 	api.Post("/shorten", handlers2.ShortenHandler{Svc: svc}.Serve)
 
-	// redirect
+	// v1 altında olmadığı için api grubuna dahil değil.
 	app.Get("/:code",
 		middleware.Settings(settingsProvider),
 		middleware.RedirectLimiter(),
