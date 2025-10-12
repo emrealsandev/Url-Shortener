@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"reflect"
 	"time"
 )
 
@@ -19,6 +20,10 @@ type URL struct {
 }
 
 type Settings struct {
-	TtlTime      int8 `bson:"ttl_time" json:"ttl_time"`
-	RedisTtlTime int8 `bson:"redis_ttl" json:"redis_ttl"`
+	TtlTime      int16 `bson:"ttl_time" json:"ttl_time"`
+	RedisTtlTime int16 `bson:"redis_ttl" json:"redis_ttl"`
+}
+
+func (s Settings) IsZero() bool {
+	return reflect.DeepEqual(s, Settings{})
 }

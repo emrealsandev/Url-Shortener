@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"url-shortener/internal/repo"
 	"url-shortener/internal/short"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,7 +22,12 @@ func (h ShortenHandler) Serve(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("bad_request")
 	}
 
-	code, shortURL, err := h.Svc.Shorten(c.Context(), req.URL, req.CustomAlias)
+	settings, ok := c.Locals("settings").(repo.Settings)
+	if !ok {
+		return c.Status(http.StatusInternalServerError).SendString("internal: failed to retrieve settings from context")
+	}
+
+	code, shortURL, err := h.Svc.Shorten(c.Context(), req.URL, req.CustomAlias, settings)
 	if err != nil {
 		switch {
 		case errors.Is(err, short.ErrInvalidURL):

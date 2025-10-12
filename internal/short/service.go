@@ -24,18 +24,17 @@ var (
 )
 
 type Service struct {
-	repo     repo.Repository
-	cache    cache.Cache
-	baseURL  string
-	logger   logger.Logger
-	Settings *repo.Settings
+	repo    repo.Repository
+	cache   cache.Cache
+	baseURL string
+	logger  logger.Logger
 }
 
-func NewService(r repo.Repository, c cache.Cache, baseURL string, logger logger.Logger, settings *repo.Settings) *Service {
-	return &Service{repo: r, cache: c, baseURL: baseURL, logger: logger, Settings: settings}
+func NewService(r repo.Repository, c cache.Cache, baseURL string, logger logger.Logger) *Service {
+	return &Service{repo: r, cache: c, baseURL: baseURL, logger: logger}
 }
 
-func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *string) (string, string, error) {
+func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *string, settings repo.Settings) (string, string, error) {
 
 	target, err := security.NormalizeUrl(inputURL)
 	if err != nil {
@@ -58,7 +57,7 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 
 	if code != "" {
 		s.logger.Info("code exist")
-		s.processCacheAfterShorten(ctx, code, target)
+		s.processCacheAfterShorten(ctx, code, target, settings)
 		return code, s.baseURL + "/" + code, nil
 	}
 
@@ -79,8 +78,8 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 	}
 
 	var exp *time.Time
-	if s.Settings != nil && s.Settings.TtlTime > 0 {
-		e := time.Now().Add(time.Duration(s.Settings.TtlTime) * time.Hour).UTC()
+	if !settings.IsZero() && settings.TtlTime > 0 {
+		e := time.Now().Add(time.Duration(settings.TtlTime) * time.Hour).UTC()
 		exp = &e
 	}
 
@@ -90,12 +89,12 @@ func (s *Service) Shorten(ctx context.Context, inputURL string, customAlias *str
 		return "", "", ErrConflict
 	}
 
-	s.processCacheAfterShorten(ctx, code, target)
+	s.processCacheAfterShorten(ctx, code, target, settings)
 
 	return code, s.baseURL + "/" + code, nil
 }
 
-func (s *Service) Resolve(ctx context.Context, code string) (string, error) {
+func (s *Service) Resolve(ctx context.Context, code string, settings repo.Settings) (string, error) {
 
 	value, hasError, errorMsg := s.cache.GetURLByCode(ctx, code)
 	if hasError {
@@ -120,7 +119,7 @@ func (s *Service) Resolve(ctx context.Context, code string) (string, error) {
 		return "", ErrExpired
 	}
 
-	s.processCacheAfterShorten(ctx, code, u.Target)
+	s.processCacheAfterShorten(ctx, code, u.Target, settings)
 	return u.Target, nil
 }
 
@@ -132,11 +131,11 @@ func (s *Service) GetSeqNum(ctx context.Context) (uint64, error) {
 	return seq, nil
 }
 
-func (s *Service) processCacheAfterShorten(ctx context.Context, code string, target string) {
+func (s *Service) processCacheAfterShorten(ctx context.Context, code string, target string, settings repo.Settings) {
 	exp := time.Duration(5) * time.Minute
 
-	if s.Settings != nil && s.Settings.RedisTtlTime > 0 {
-		exp = time.Duration(s.Settings.RedisTtlTime) * time.Minute
+	if !settings.IsZero() && settings.RedisTtlTime > 0 {
+		exp = time.Duration(settings.RedisTtlTime) * time.Minute
 	}
 
 	_ = s.cache.SetURLByCode(ctx, code, target, exp)

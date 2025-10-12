@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 	"url-shortener/internal/cache"
+	"url-shortener/internal/config"
 	"url-shortener/internal/repo"
 	"url-shortener/internal/short"
 
@@ -42,24 +43,12 @@ func New(opt Options) *Server {
 	app.Use(logger.New()) // bu fiberin loggeri bizim logical olan farklı!
 	app.Use(compress.New())
 
-	settings := opt.Cache.GetHash(repo.COLLECTION_SETTINGS)
-	if settings == nil {
+	settingsProvider := config.NewProvider(opt.Repo, opt.Cache, repo.COLLECTION_SETTINGS)
 
-		var err error
-		settings, err = opt.Repo.GetAllSettings()
-		opt.Logger.Debug("settings: ", settings)
-
-		if err != nil {
-			opt.Logger.Warn("Error while getting settings from database: ", err)
-		}
-
-		_ = opt.Cache.SetHash(repo.COLLECTION_SETTINGS, settings)
-	}
-
-	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL, opt.Logger, settings)
+	svc := short.NewService(opt.Repo, opt.Cache, opt.BaseURL, opt.Logger)
 
 	// Routes
-	registerRoutes(app, svc)
+	registerRoutes(app, svc, settingsProvider)
 
 	return &Server{app: app, opt: opt}
 }

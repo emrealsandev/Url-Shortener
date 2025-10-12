@@ -92,24 +92,17 @@ func (r *URLRepo) GetAllSettings() (*repo.Settings, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	projection := options.Find().SetProjection(bson.M{"_id": "0"})
-	cur, err := r.settingsCollection.Find(ctx, bson.M{}, projection)
-	if err != nil {
-		return nil, err
-	}
-	defer cur.Close(ctx)
-
 	var settings repo.Settings
-	for cur.Next(ctx) {
-		err := cur.Decode(&settings)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// TEK BİR sorgu ile tüm ayarları al.
+	err := r.settingsCollection.FindOne(ctx, bson.M{}).Decode(&settings)
 
-	if err := cur.Err(); err != nil {
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			// Hiç ayar yoksa boş struct dön, bu bir hata değil.
+			return &repo.Settings{}, nil
+		}
+		// Gerçek bir hata varsa onu dön.
 		return nil, err
 	}
-
 	return &settings, nil
 }

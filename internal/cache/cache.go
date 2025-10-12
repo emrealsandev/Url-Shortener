@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"time"
-	"url-shortener/internal/repo"
 )
 
 type Cache interface {
@@ -14,6 +13,6 @@ type Cache interface {
 	GetCodeByURLKey(ctx context.Context, urlKey string) (string, bool, error)
 	SetCodeByURLKey(ctx context.Context, urlKey, code string, ttl time.Duration) error
 	IsKeyExists(ctx context.Context, key string) int64
-	GetHash(hashKey string) *repo.Settings
-	SetHash(hashKey string, src interface{}) error
+	GetHash(hashKey string, dest any) error
+	SetHash(hashKey string, src any, ttl int16) error
 }
