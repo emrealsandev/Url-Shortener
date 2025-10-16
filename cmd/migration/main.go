@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
+	appcfg "github.com/emrealsandev/Url-Shortener/internal/config"
+	"github.com/emrealsandev/Url-Shortener/internal/migration"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
-	appcfg "url-shortener/internal/config"
-	"url-shortener/internal/migration"
 )
 
 func main() {

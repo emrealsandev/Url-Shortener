@@ -3,15 +3,15 @@ package short
 import (
 	"context"
 	"errors"
+	"github.com/emrealsandev/Url-Shortener/internal/cache"
+	"github.com/emrealsandev/Url-Shortener/internal/config"
+	"github.com/emrealsandev/Url-Shortener/internal/logger"
+	"github.com/emrealsandev/Url-Shortener/internal/repo"
+	"github.com/emrealsandev/Url-Shortener/internal/security"
+	"github.com/emrealsandev/Url-Shortener/pkg/base62"
 	"strconv"
 	"strings"
 	"time"
-	"url-shortener/internal/cache"
-	"url-shortener/internal/config"
-	"url-shortener/internal/logger"
-	"url-shortener/internal/repo"
-	"url-shortener/internal/security"
-	"url-shortener/pkg/base62"
 )
 
 var (

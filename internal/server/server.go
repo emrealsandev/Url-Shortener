@@ -3,14 +3,14 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/emrealsandev/Url-Shortener/internal/cache"
+	"github.com/emrealsandev/Url-Shortener/internal/config"
+	"github.com/emrealsandev/Url-Shortener/internal/repo"
+	"github.com/emrealsandev/Url-Shortener/internal/short"
 	"log"
 	"time"
-	"url-shortener/internal/cache"
-	"url-shortener/internal/config"
-	"url-shortener/internal/repo"
-	"url-shortener/internal/short"
 
-	loggerInterface "url-shortener/internal/logger"
+	loggerInterface "github.com/emrealsandev/Url-Shortener/internal/logger"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"

@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
+	"github.com/emrealsandev/Url-Shortener/internal/cache"
+	appcfg "github.com/emrealsandev/Url-Shortener/internal/config"
+	"github.com/emrealsandev/Url-Shortener/internal/logger"
+	mongorepo "github.com/emrealsandev/Url-Shortener/internal/repo/mongo"
+	"github.com/emrealsandev/Url-Shortener/internal/server"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"url-shortener/internal/cache"
-	appcfg "url-shortener/internal/config"
-	"url-shortener/internal/logger"
-	mongorepo "url-shortener/internal/repo/mongo"
-	"url-shortener/internal/server"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

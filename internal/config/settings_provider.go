@@ -2,9 +2,9 @@ package config
 
 import (
 	"errors"
+	"github.com/emrealsandev/Url-Shortener/internal/cache"
+	"github.com/emrealsandev/Url-Shortener/internal/repo"
 	"sync"
-	"url-shortener/internal/cache"
-	"url-shortener/internal/repo"
 
 	"github.com/redis/go-redis/v9"
 )

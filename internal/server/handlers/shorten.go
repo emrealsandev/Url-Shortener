@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"github.com/emrealsandev/Url-Shortener/internal/repo"
+	"github.com/emrealsandev/Url-Shortener/internal/short"
 	"net/http"
-	"url-shortener/internal/repo"
-	"url-shortener/internal/short"
 
 	"github.com/gofiber/fiber/v2"
 )

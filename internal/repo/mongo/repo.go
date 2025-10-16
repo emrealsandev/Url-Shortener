@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
-	"url-shortener/internal/repo"
+
+	"github.com/emrealsandev/Url-Shortener/internal/repo"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

@@ -1,8 +1,8 @@
 package logger
 
 import (
+	"github.com/emrealsandev/Url-Shortener/internal/config"
 	"os"
-	"url-shortener/internal/config"
 
 	"go.uber.org/zap"
 )

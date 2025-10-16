@@ -1,11 +1,11 @@
 package server
 
 import (
-	"url-shortener/internal/config"
-	"url-shortener/internal/server/docs"
-	handlers2 "url-shortener/internal/server/handlers"
-	"url-shortener/internal/server/middleware"
-	"url-shortener/internal/short"
+	"github.com/emrealsandev/Url-Shortener/internal/config"
+	"github.com/emrealsandev/Url-Shortener/internal/server/docs"
+	handlers2 "github.com/emrealsandev/Url-Shortener/internal/server/handlers"
+	"github.com/emrealsandev/Url-Shortener/internal/server/middleware"
+	"github.com/emrealsandev/Url-Shortener/internal/short"
 
 	"github.com/gofiber/fiber/v2"
 )

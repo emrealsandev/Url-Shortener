@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"url-shortener/internal/config"
-	"url-shortener/internal/repo"
+	"github.com/emrealsandev/Url-Shortener/internal/config"
+	"github.com/emrealsandev/Url-Shortener/internal/repo"
 
 	"github.com/gofiber/fiber/v2"
 )
