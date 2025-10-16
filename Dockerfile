@@ -1,6 +1,6 @@
 # --- 1. Aşama: Build Aşaması ---
 # Go'nun kurulu olduğu bir imajı temel alarak başlıyoruz
-FROM golang:1.21-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Çalışma dizinini ayarlıyoruz
 WORKDIR /app
@@ -31,5 +31,4 @@ COPY --from=builder /app/main .
 # Uygulama 8080 portunu dinleyecek
 EXPOSE 8080
 
-# Container çalıştığında çalıştırılacak komut. Artık 'air' yok!
 CMD ["/app/main"]
