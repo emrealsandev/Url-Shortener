@@ -1,0 +1,15 @@
+FROM golang:1.24-alpine
+
+# temel bağımlılıklar
+RUN apk add --no-cache git build-base ca-certificates tzdata && update-ca-certificates
+
+# Air kurulumu
+RUN go install github.com/air-verse/air@latest
+
+WORKDIR /app
+
+# mod cache hızlansın diye (opsiyonel)
+COPY go.mod go.sum ./
+RUN go mod download
+
+# compose, 'air -c /app/air.toml' ile çalıştıracak
