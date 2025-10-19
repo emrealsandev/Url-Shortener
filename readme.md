@@ -31,13 +31,18 @@ Copy `.env.example` to `.env` and adjust values:
 cp .env.example .env
 ```
 
+Copy `.Dockerfile_local` to `.Dockerfile` for local setup:
+```bash
+cp .Dockerfile_local .Dockerfile
+```
+
 Minimal `.env` example:
 ```env
 APP_ENVIRONMENT=local
 PORT=8080
 BASE_URL=http://localhost:8080
 
-MONGO_URI=mongodb://localhost:27017
+MONGO_URI=mongodb://host.docker.internal:27017
 MONGO_DB=shortener
 
 # Salt used when generating Base62 codes (use your own!)
@@ -189,8 +194,6 @@ Security tips:
 - API authentication (tokens)
 - Batch shortening
 - QR code generation
-- Simple User Interface (UI)
-
 ---
 
 ### 🤝 Contributing

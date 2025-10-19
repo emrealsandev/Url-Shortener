@@ -12,6 +12,14 @@ import (
 
 func registerRoutes(app *fiber.App, svc *short.Service, settingsProvider *config.Provider) {
 
+	// Serve static files (frontend)
+	app.Static("/static", "./web/static")
+
+	// Serve index.html at root
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendFile("./web/index.html")
+	})
+
 	// api
 	api := app.Group("/v1")
 

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - Linklerini Kısalt</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M8 20C8 13.373 13.373 8 20 8C26.627 8 32 13.373 32 20C32 26.627 26.627 32 20 32C13.373 32 8 26.627 8 20Z"
+                      stroke="url(#gradient)" stroke-width="3"/>
+                <path d="M15 20H25M20 15L25 20L20 25" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="gradient" x1="8" y1="8" x2="32" y2="32">
+                        <stop offset="0%" style="stop-color:#667eea"/>
+                        <stop offset="100%" style="stop-color:#764ba2"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <h1>URL Shortener</h1>
+        </div>
+        <p class="subtitle">Uzun linklerini kısa ve paylaşılabilir hale getir ⚡</p>
+    </div>
+
+    <div class="main-card">
+        <form id="shortenForm">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 0C4.477 0 0 4.477 0 10C0 15.523 4.477 20 10 20C15.523 20 20 15.523 20 10C20 4.477 15.523 0 10 0ZM10 18C5.589 18 2 14.411 2 10C2 5.589 5.589 2 10 2C14.411 2 18 5.589 18 10C18 14.411 14.411 18 10 18Z"
+                              fill="currentColor"/>
+                        <path d="M13.293 6.293L9 10.586L7.707 9.293L6.293 10.707L9 13.414L14.707 7.707L13.293 6.293Z"
+                              fill="currentColor"/>
+                    </svg>
+                    <input
+                            type="url"
+                            id="urlInput"
+                            placeholder="Uzun URL'ini buraya yapıştır"
+                            required
+                            autocomplete="off"
+                    >
+                </div>
+                <button type="submit" id="submitBtn" class="submit-btn">
+                    <span class="btn-text">Kısalt</span>
+                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10H16M16 10L12 6M16 10L12 14" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="custom-alias-section">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="customAliasToggle">
+                    <span class="checkbox-custom"></span>
+                    <span>Özel kısa link kullan (opsiyonel)</span>
+                </label>
+                <div class="custom-alias-input" id="customAliasInput" style="display: none;">
+                    <input
+                            type="text"
+                            id="customAlias"
+                            placeholder="ornek-link"
+                            pattern="[a-zA-Z0-9-_]+"
+                    >
+                    <small>Sadece harf, rakam, tire ve alt çizgi kullanabilirsiniz</small>
+                </div>
+            </div>
+        </form>
+
+        <div id="result" class="result" style="display: none;">
+            <div class="result-header">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 12L11 14L15 10M21 12C21 16.971 16.971 21 12 21C7.029 21 3 16.971 3 12C3 7.029 7.029 3 12 3C16.971 3 21 7.029 21 12Z"
+                          stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>Başarılı! </h3>
+            </div>
+            <div class="result-content">
+                <div class="url-display">
+                    <label>Kısa Linkin:</label>
+                    <div class="url-box">
+                        <a href="#" id="shortUrl" target="_blank"></a>
+                        <button class="copy-btn" id="copyBtn" title="Kopyala">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path d="M8 4V16C8 17.1046 8.89543 18 10 18H18M8 4C8 2.89543 8.89543 2 10 2H15.1716C15.702 2 16.2107 2.21071 16.5858 2.58579L19.4142 5.41421C19.7893 5.78929 20 6.29799 20 6.82843V16C20 17.1046 19.1046 18 18 18M8 4H6C4.89543 4 4 4.89543 4 6V20C4 21.1046 4.89543 22 6 22H14C15.1046 22 16 21.1046 16 20V18"
+                                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="url-display">
+                    <label>Orijinal Link:</label>
+                    <div class="original-url" id="originalUrl"></div>
+                </div>
+                <button class="new-btn" id="newBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 4V20M20 12H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Yeni Link Kısalt
+                </button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 0C4.477 0 0 4.477 0 10C0 15.523 4.477 20 10 20C15.523 20 20 15.523 20 10C20 4.477 15.523 0 10 0ZM11 14H9V12H11V14ZM11 10H9V6H11V10Z"
+                      fill="currentColor"/>
+            </svg>
+            <span id="errorMessage"></span>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Link kısaltılıyor...</p>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Hızlı</h3>
+            <p>Saniyeler içinde kısa link</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="48px" viewBox="0 0 24 24" width="55px" fill="#FFFFFF"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M6,6.39v4.7c0,4,2.55,7.7,6,8.83c3.45-1.13,6-4.82,6-8.83v-4.7l-6-2.25L6,6.39 z" enable-background="new" opacity=".3"/><path d="M12,2L4,5v6.09c0,5.05,3.41,9.76,8,10.91c4.59-1.15,8-5.86,8-10.91V5L12,2z M18,11.09c0,4-2.55,7.7-6,8.83 c-3.45-1.13-6-4.82-6-8.83v-4.7l6-2.25l6,2.25V11.09z" /></g></g></svg></div>
+            <h3 style="padding-top: 0;">Güvenli</h3>
+            <p>Rate limiting korumalı</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="48px" viewBox="0 0 24 24" width="48px" fill="#F9DB78"><g><rect fill="none" height="24" width="24" x="0"/></g><g><g><polygon opacity=".3" points="9.99,11.01 9,8.83 8.01,11.01 5.83,12 8.01,12.99 9,15.17 9.99,12.99 12.17,12"/><polygon points="19,9 20.25,6.25 23,5 20.25,3.75 19,1 17.75,3.75 15,5 17.75,6.25"/><polygon points="19,15 17.75,17.75 15,19 17.75,20.25 19,23 20.25,20.25 23,19 20.25,17.75"/><path d="M11.5,9.5L9,4L6.5,9.5L1,12l5.5,2.5L9,20l2.5-5.5L17,12L11.5,9.5z M9.99,12.99L9,15.17l-0.99-2.18L5.83,12l2.18-0.99 L9,8.83l0.99,2.18L12.17,12L9.99,12.99z"/></g></g></svg></div>
+            <h3>Özel Link</h3>
+            <p>İstediğin alias'ı kullan</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Made with ❤️ by <a href="https://github.com/emrealsandev" target="_blank">Emre Alsan</a></p>
+        <div class="footer-links">
+            <a href="https://github.com/emrealsandev/Url-Shortener" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </footer>
+</div>
+
+<script src="./static/app.js"></script>
+</body>
+</html>
