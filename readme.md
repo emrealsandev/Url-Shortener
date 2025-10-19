@@ -1,6 +1,8 @@
 ### 🔗 URL Shortener (Go + Fiber, MongoDB, Redis)
 A simple, fast, and production-ready URL shortening service written in Go. It uses MongoDB for persistence, Redis for aggressive caching, and Fiber for HTTP. It supports custom aliases, automatic Base62 code generation, per-request settings, and sensible rate limits.
 
+Demo: https://shortener.emrealsan.com/
+
 ---
 
 ### 📦 Features
